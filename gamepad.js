@@ -3,7 +3,7 @@ const GamepadTypes = require('./gamepadTypes');
 const clone = require('clone');
 
 class Gamepad {
-    constructor(name, configurations, options = {}) {
+    constructor(name, configurations = null, options = {}) {
         this.name = name;
 
         this.connected = false;
@@ -19,9 +19,9 @@ class Gamepad {
 
         this.axisThreshold = options.axisThreshold || 0.35;
         this.axisMode = options.axisMode || 0;
-        this.getAxisValue = (raw) => this.axisMode
-            ? Math.round(axis / this.axisThreshold) * this.axisThreshold
-            : Math.abs(axis) > this.axisThreshold ? Math.abs(axis) / axis : 0;
+        this.getAxisValue = (value) => this.axisMode
+            ? Math.round(value / this.axisThreshold) * this.axisThreshold
+            : Math.abs(value) > this.axisThreshold ? Math.abs(value) / value : 0;
 
         this.keyboard = options.keyboard;
         this.replaceKeyboard = options.replaceKeyboard;
@@ -30,8 +30,8 @@ class Gamepad {
         this.loadConfig();
 
         this.handlers = {
-            down: () => { },
-            up: () => { }
+            down: () => {},
+            up: () => {}
         };
     }
 
@@ -48,9 +48,9 @@ class Gamepad {
         this.configuring = false;
 
         if (gp.axes.length == 0) {
-            this.configType = configTypes.DPAD;
+            this.configType = GamepadTypes.DPAD;
         } else {
-            this.configType = configTypes.JOYSTICK;
+            this.configType = GamepadTypes.JOYSTICK;
         }
         this.loadConfig();
 
@@ -101,10 +101,12 @@ class Gamepad {
         return this.config.find(c => c.name == name).value;
     }
 
-    hasActivity() {
+    hasActivity({ buttonsOnly = false } = {}) {
         let value = false;
-        if (this.axes && this.buttons) {
-            value = this.axes.filter(a => this.getAxisValue(a)).length > 0;
+        if (!buttonsOnly && this.axes) {
+          value = this.axes.filter(a => this.getAxisValue(a)).length > 0;
+        }
+        if (this.buttons) {
             value = value || this.buttons.filter(b => b).length > 0;
         }
         return value;
@@ -124,7 +126,7 @@ class Gamepad {
 
     getConfigurableButtons() {
         if (!this.config) return null;
-        return this.config.filter(b => !_.isArray(b.id));
+        return this.config.filter(b => !b.id.length);
     }
 
     startButtonConfigure(button) {
@@ -183,7 +185,7 @@ class Gamepad {
         if (this.ignoreInputs) return;
 
         if (this.settingButton && event == 'down') {
-            const btn = _.find(this.config, b => {
+            const btn = this.config.find(b => {
                 return b.selected;
             });
             btn.id = keyCode;
@@ -196,10 +198,10 @@ class Gamepad {
 
         this.keys[keyCode] = event == 'down';
 
-        const matches = _.filter(this.config, (c) => {
+        const matches = this.config.filter((c) => {
             let match = c.id == keyCode;
-            if (_.isArray(c.id)) {
-                const keyCodes = _.pluck(this.config.filter(x => c.id.includes(x.name)), 'id');
+            if (c.id.length) {
+                const keyCodes = this.config.filter(x => c.id.includes(x.name)).map(c => c.id);
                 match = keyCodes.includes(keyCode);
             }
             return c.type == GamepadButtonTypes.KEY
@@ -216,7 +218,7 @@ class Gamepad {
         if (this.ignoreInputs) return;
 
         if (this.settingButton) {
-            const btn = _.find(this.config, b => {
+            const btn = this.config.find(b => {
                 return b.selected;
             });
 
@@ -244,9 +246,9 @@ class Gamepad {
         }
 
         gp.buttons.forEach((button, index) => {
-            const buttons = _.filter(this.config, c => {
+            const buttons = this.config.filter(c => {
                 return c.type == GamepadButtonTypes.BUTTON
-                    && (c.id == index || (_.isArray(c.id) && c.id.indexOf(index) > -1));
+                    && (c.id == index || (c.id.length && c.id.indexOf(index) > -1));
             });
             if (((this.textInput && buttons.find(b => [INPUTS.UP, INPUTS.DOWN, INPUTS.LEFT, INPUTS.RIGHT].includes(b.name))) || this.buttons[index] != button.pressed) && buttons.length > 0) {
                 let value = button.value;
@@ -261,7 +263,7 @@ class Gamepad {
         });
         
         gp.axes.forEach((axis, index) => {
-            const buttons = _.filter(this.config, c => {
+            const buttons = this.config.filter(c => {
                 return (c.type == GamepadButtonTypes.AXIS_NEGATIVE
                     || c.type == GamepadButtonTypes.AXIS_POSITIVE)
                     && c.id == index;
