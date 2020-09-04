@@ -17,6 +17,8 @@ class Gamepad {
         this.buttons = null;
         this.keys = [];
 
+        this.connectedAt = new Date();
+
         this.axisThreshold = options.axisThreshold || 0.35;
         this.axisMode = options.axisMode || 0;
         this.getAxisValue = (value) => this.axisMode
@@ -72,10 +74,10 @@ class Gamepad {
         this.waiting = true;
     }
 
-    getState() {
+    getState(inputs) {
         const getSign = x => Math.abs(x) / x;
         let state = [];
-        Object.values(INPUTS).forEach((value, i) => {
+        Object.values(inputs).forEach((value, i) => {
             const btn = this.config.find(c => c.name == value);
             let pressed = false;
             switch (btn.type) {
@@ -104,10 +106,13 @@ class Gamepad {
     hasActivity({ buttonsOnly = false } = {}) {
         let value = false;
         if (!buttonsOnly && this.axes) {
-          value = this.axes.filter(a => this.getAxisValue(a)).length > 0;
+          value = this.axes.some(a => this.getAxisValue(a));
         }
         if (this.buttons) {
-            value = value || this.buttons.filter(b => b).length > 0;
+            value = value || this.buttons.some(b => b);
+        }
+        if (this.keyboard && this.keys) {
+          value = value || this.keys.some(k => k);
         }
         return value;
     }

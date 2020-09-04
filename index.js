@@ -62,15 +62,12 @@ const getNextEmptyIndex = (array, keyboard = false) => {
     for (let i = 0; i <= array.length; i++) {
       const gp = array[i];
       const isEmpty = !gp;
-      const isKeyboard = keyboard && gp && gp.keyboard && gp.replaceKeyboard;
-      if (isEmpty || isKeyboard) return i;
+      const replaceKeyboard = !keyboard && gp && gp.keyboard && gp.replaceKeyboard;
+      if (isEmpty || replaceKeyboard) return [i, replaceKeyboard ? gp : null];
     }
 }
 
-const getNextName = (array) => {
-  const i = getNextEmptyIndex(array);
-  return 'P' + (i + 1).toString();
-}
+const getName = i => `P${i + 1}`;
 
 const setConfiguration = (type, config) => {
   configurations[type] = config;
@@ -87,9 +84,13 @@ window.addEventListener("gamepadconnected", function (e) {
     e.gamepad.index, e.gamepad.id,
     e.gamepad.buttons.length, e.gamepad.axes.length);
 
-  const gp = new Gamepad(getNextName(gamepads), configurations);
+  const [i, replacingKeyboard] = getNextEmptyIndex(gamepads);
+
+  const gp = new Gamepad(getName(i), configurations);
   gp.connect(e.gamepad);
-  const i = getNextEmptyIndex(gamepads);
+  if (replacingKeyboard) {
+    gp.handlers = replacingKeyboard.handlers;
+  }
   gamepads[i] = gp;
   onGamepadConnected(gp, i, e);
 });
@@ -122,17 +123,18 @@ window.addEventListener('keyup', (event) => {
 const processGamepadActivity = () => {
   const gamepadInterfaces = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
   for (let i = 0; i < gamepadInterfaces.length; i++) {
-    const gp = gamepadInterfaces[i];
-    if (!gp) continue;
-    const p = gamepads.find(i => i == gp.index);
-    if (!p) continue;
-    p.handleInput(gp);
+    const gpi = gamepadInterfaces[i];
+    if (!gpi) continue;
+    const gamepad = gamepads.find(gp => gp.index == gpi.index);
+    if (!gamepad) continue;
+    gamepad.handleInput(gpi);
   }
 };
 
 const addKeyboardController = ({ replaceKeyboard = true, config = {} } = {}) => {
+  const [i] = getNextEmptyIndex(gamepads, true)
   const gamepad = new Gamepad(
-    getNextName(gamepads),
+    getName(i),
     {
       ...configurations,
       ...config,
@@ -141,7 +143,7 @@ const addKeyboardController = ({ replaceKeyboard = true, config = {} } = {}) => 
       keyboard: true,
       replaceKeyboard,
     });
-  gamepads[getNextEmptyIndex(gamepads, true)] = gamepad;
+  gamepads[i] = gamepad;
 }
 
 const handleGamepadConnected = (handler) => {
