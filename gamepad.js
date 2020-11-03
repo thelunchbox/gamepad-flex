@@ -4,12 +4,13 @@ const GamepadTypes = require('./gamepadTypes');
 const { getHandler: getGlobalHandler } = require('./globalHandlers');
 
 class Gamepad {
-    constructor(name, configurations = null, options = {}) {
+    constructor(name, position, configurations = null, options = {}) {
         this.name = name;
 
         this.connected = false;
         this.id = null;
         this.index = null;
+        this.position = position;
 
         this.settingButton = false;
         this.ignoreInputs = false;
@@ -213,7 +214,7 @@ class Gamepad {
         matches.forEach(m => {
             const handler = this.handlers[event] || getGlobalHandler(event);
             const value = event == 'up' ? 0 : m.multiplier;
-            handler && handler(m.name, value, { index: this.index, name: this.name });
+            handler && handler(m.name, value, { index: this.position, name: this.name });
         });
     }
 
@@ -260,7 +261,7 @@ class Gamepad {
                     const event = value ? 'down' : 'up';
                     value = Math.abs(value) * (b.multiplier)
                     const handler = this.handlers[event] || getGlobalHandler(event);
-                    handler && handler(b.name, value, { index: this.index, name: this.name });
+                    handler && handler(b.name, value, { index: this.position, name: this.name });
                 });
             }
         });
@@ -280,7 +281,7 @@ class Gamepad {
                         const event = value ? 'down' : 'up';
                         const sendValue = Math.abs(value) * (b.multiplier)
                         const handler = this.handlers[event] || getGlobalHandler(event);
-                        handler && handler(m.name, sendValue, { index: this.index, name: this.name });
+                        handler && handler(m.name, sendValue, { index: this.position, name: this.name });
                     }
                 });
             }

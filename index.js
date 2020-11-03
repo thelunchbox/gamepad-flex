@@ -87,7 +87,7 @@ window.addEventListener("gamepadconnected", function (e) {
 
   const [i, replacingKeyboard] = getNextEmptyIndex(gamepads);
 
-  const gp = new Gamepad(getName(i), configurations);
+  const gp = new Gamepad(getName(i), i, configurations);
   gp.connect(e.gamepad);
   if (replacingKeyboard) {
     gp.handlers = replacingKeyboard.handlers;
@@ -136,6 +136,7 @@ const addKeyboardController = ({ replaceKeyboard = true, config = {} } = {}) => 
   const [i] = getNextEmptyIndex(gamepads, true)
   const gamepad = new Gamepad(
     getName(i),
+    i,
     {
       ...configurations,
       ...config,
