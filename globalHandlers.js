@@ -1,17 +1,15 @@
-const { module } = require("window-or-global");
-
-const globalHandlers = {};
+const sharedHandlers = {};
 
 function on(event, callback) {
-  globalHandlers[event] = callback;
+  sharedHandlers[event] = callback;
 }
 
 function ignore(event) {
-  delete globalHandlers[event];
+  delete sharedHandlers[event];
 }
 
 function getHandler(event) {
-  return globalHandlers[event];
+  return sharedHandlers[event];
 }
 
 module.exports = {
