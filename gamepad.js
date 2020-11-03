@@ -1,6 +1,7 @@
+const clone = require('clone');
 const { GamepadButtonTypes } = require('./gamepadButtonTypes');
 const GamepadTypes = require('./gamepadTypes');
-const clone = require('clone');
+const { getHandler: getGlobalHandler } = require('./globalHandlers');
 
 class Gamepad {
     constructor(name, configurations = null, options = {}) {
@@ -213,9 +214,9 @@ class Gamepad {
                 && match;
         });
         matches.forEach(m => {
-            const handler = this.handlers[event];
+            const handler = this.handlers[event] || getGlobalHandler(event);
             const value = event == 'up' ? 0 : m.multiplier;
-            handler && handler(m.name, value);
+            handler && handler(m.name, value, { index: this.index, name: this.name });
         });
     }
 

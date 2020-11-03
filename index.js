@@ -10,6 +10,7 @@ const {
 const GamepadTypes = require('./gamepadTypes');
 const GamepadButton = require('./gamepadButton');
 const Gamepad = require('./gamepad');
+const { on: setGlobalHandler, ignore: unsetGlobalHandler } = require('./globalHandlers');
 
 const onGamepadConnected = () => {};
 
@@ -160,4 +161,6 @@ module.exports = {
   KeyboardKeyCodes,
   processGamepadActivity,
   setConfiguration,
-}
+  setGlobalHandler,
+  unsetGlobalHandler,
+};
