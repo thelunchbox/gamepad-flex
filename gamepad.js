@@ -215,7 +215,7 @@ class Gamepad {
         matches.forEach(m => {
             const handler = this.handlers[event];
             const value = event == 'up' ? 0 : m.multiplier;
-            handler(m.name, value);
+            handler && handler(m.name, value);
         });
     }
 
