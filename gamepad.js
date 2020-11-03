@@ -32,10 +32,7 @@ class Gamepad {
         this.configurations = configurations;
         this.loadConfig();
 
-        this.handlers = {
-            down: () => {},
-            up: () => {}
-        };
+        this.handlers = {};
     }
 
     connect(gp) {
