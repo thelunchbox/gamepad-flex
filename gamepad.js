@@ -262,8 +262,8 @@ class Gamepad {
                 buttons.forEach(b => {
                     const event = value ? 'down' : 'up';
                     value = Math.abs(value) * (b.multiplier)
-                    const handler = this.handlers[event];
-                    handler(b.name, value);
+                    const handler = this.handlers[event] || getGlobalHandler(event);
+                    handler && handler(b.name, value, { index: this.index, name: this.name });
                 });
             }
         });
@@ -282,8 +282,8 @@ class Gamepad {
                     if (value == 0 || (value < 0 && b.type == GamepadButtonTypes.AXIS_NEGATIVE) || (value > 0 && b.type == GamepadButtonTypes.AXIS_POSITIVE)) {
                         const event = value ? 'down' : 'up';
                         const sendValue = Math.abs(value) * (b.multiplier)
-                        const handler = this.handlers[event];
-                        handler(b.name, sendValue);
+                        const handler = this.handlers[event] || getGlobalHandler(event);
+                        handler && handler(m.name, sendValue, { index: this.index, name: this.name });
                     }
                 });
             }
